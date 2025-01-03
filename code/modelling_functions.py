@@ -12,9 +12,7 @@ import statsmodels.formula.api as smf
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 from scipy import stats
 
-from includes import base_include
-from includes.base_include import *
-# from modelling.get_model_data import *
+from base_include import *
 
 FEATURE_NAMES = {'T_SFC': 'Temperature',
  'T_SFC_ishistorical': 'Historical indicator',

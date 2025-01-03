@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
-from includes import base_include
-from includes.base_include import *
+from base_include import *
 from modelling_functions import *
 
 # Groups of modelling features
@@ -14,17 +13,16 @@ model_features = weather_features + dem_features + urban_density_features + vege
 outcomes = ['uncontrolled_within_2_hrs', 'uncontrolled_within_4_hrs', 'uncontrolled_within_5_ha', 'uncontrolled_within_100_ha']
 
 # Read in data and add features
-incidents = pd.read_pickle(MODEL_INPUT)
+incidents = pd.read_csv(MODEL_INPUT)
 incidents = (incidents
- .assign(agency=incidents.agency.astype('category'),
+ .assign(date = pd.to_datetime(incidents.date),
+         reported_time = pd.to_datetime(incidents.reported_time),
          primary_fuel_type=incidents.primary_fuel_type.astype('category'),
-         ffmv_region=incidents.ffmv_region.astype('category'),
          T_SFC = incidents.T_SFC.fillna(incidents.T_SFC_historical),
          RH_SFC = incidents.RH_SFC.fillna(incidents.RH_SFC_historical),
          DF_SFC = incidents.DF_SFC.fillna(incidents.DF_SFC_historical),
          WindMagKmh_SFC = incidents.WindMagKmh_SFC.fillna(incidents.WindMagKmh_SFC_historical),
          KBDI = incidents.KBDI.fillna(incidents.KBDI_historical),
-         KBDI_nextday = incidents.KBDI_nextday.fillna(incidents.KBDI_nextday_historical),
          Curing = incidents.Curing.fillna(incidents.Curing_historical),
          FFDI = incidents.FFDI.fillna(incidents.FFDI_historical),
          GFDI = incidents.GFDI.fillna(incidents.GFDI_historical),
@@ -43,8 +41,7 @@ incidents = (incidents
 )
 incidents = (incidents
              .drop(columns=incidents.columns[incidents.columns.str.endswith('_historical')])
-             .query(f'reported_time.dt.date < datetime.date(2024, 4, 1)') # set a "clean" end date for our data
-            )[['agency', 'fire_name', 'reported_time', 'point', 'season', 'primary_fuel_type', 'FFDI', 'GFDI'] + model_features + outcomes]
+            )
 incidents = incidents.dropna(subset = model_features + outcomes)
 
 # split data by primary fuel type and remove the veg_density_3km of the primary fuel type in each group, because that's our reference

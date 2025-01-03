@@ -33,7 +33,7 @@ import statsmodels.graphics.api as smg
 from scipy import stats
 
 # Import setup file
-from includes.base_include import *
+from base_include import *
 from get_model_data import *
 from modelling_functions import *
 
@@ -52,31 +52,31 @@ incidents.columns
 
 # COMMAND ----------
 
-count = incidents.groupby('primary_fuel_type').count().agency
+count = incidents.groupby('primary_fuel_type').count().season
 print(count)
 print(count/count.sum()*100)
 
 # COMMAND ----------
 
-count = incidents.query('primary_fuel_type=="grass"').groupby('uncontrolled_within_2_hrs').count().agency
+count = incidents.query('primary_fuel_type=="grass"').groupby('uncontrolled_within_2_hrs').count().season
 print(count)
 print(count/count.sum()*100)
 
 # COMMAND ----------
 
-count = incidents.query('primary_fuel_type=="grass"').groupby('uncontrolled_within_100_ha').count().agency
+count = incidents.query('primary_fuel_type=="grass"').groupby('uncontrolled_within_100_ha').count().season
 print(count)
 print(count/count.sum()*100)
 
 # COMMAND ----------
 
-count = incidents.query('primary_fuel_type=="forest"').groupby('uncontrolled_within_4_hrs').count().agency
+count = incidents.query('primary_fuel_type=="forest"').groupby('uncontrolled_within_4_hrs').count().season
 print(count)
 print(count/count.sum()*100)
 
 # COMMAND ----------
 
-count = incidents.query('primary_fuel_type=="forest"').groupby('uncontrolled_within_5_ha').count().agency
+count = incidents.query('primary_fuel_type=="forest"').groupby('uncontrolled_within_5_ha').count().season
 print(count)
 print(count/count.sum()*100)
 
@@ -90,19 +90,11 @@ forest_incidents.groupby('season').is_train_data.unique()
 
 # COMMAND ----------
 
-(13/17, 4/17)
-
-# COMMAND ----------
-
 grass_incidents.is_train_data.value_counts()/grass_incidents.shape[0]
 
 # COMMAND ----------
 
 forest_incidents.is_train_data.value_counts()/forest_incidents.shape[0]
-
-# COMMAND ----------
-
-"uncontrolled_within_2_hrs_p".replace('_p', '').replace('_', ' ').capitalize()
 
 # COMMAND ----------
 
@@ -112,23 +104,7 @@ forest_incidents.is_train_data.value_counts()/forest_incidents.shape[0]
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### All
-
-# COMMAND ----------
-
-all_fit = {}
-for outcome in outcomes:
-    all_fit[outcome] = fit_logistic_regression(incidents, outcome, model_features=grass_features)
-    all_fit
-
-# COMMAND ----------
-
-# MAGIC %md
 # MAGIC ### Grass
-
-# COMMAND ----------
-
-grass_2_hrs_features
 
 # COMMAND ----------
 
@@ -152,14 +128,18 @@ get_model_diagnostics(rslt = grass_fit['uncontrolled_within_100_ha'][0],
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC #### Paper plots and model summary
+
+# COMMAND ----------
+
 outcome = 'uncontrolled_within_2_hrs'
 get_model_diagnostics(rslt = grass_fit[outcome][0], 
                       incidents_train = grass_fit[outcome][1], 
                       incidents_test = grass_fit[outcome][2],
                       outcome = outcome,
                       print_density=True,
-                      model_name_text='Grass: ',
-                      save_to=DENSITY / (outcome + '_density.eps'))
+                      model_name_text='Grass: ')
 
 # COMMAND ----------
 
@@ -169,8 +149,7 @@ get_model_diagnostics(rslt = grass_fit[outcome][0],
                       incidents_test = grass_fit[outcome][2],
                       outcome = outcome,
                       print_density=True,
-                      model_name_text='Grass: ',
-                      save_to=DENSITY / (outcome + '_density.eps'))
+                      model_name_text='Grass: ')
 
 # COMMAND ----------
 
@@ -179,8 +158,7 @@ get_model_diagnostics(rslt = grass_fit[outcome][0],
                       incidents_train = grass_fit[outcome][1], 
                       incidents_test = grass_fit[outcome][2],
                       outcome = outcome,
-                      print_appendix_diagnostics=True,
-                      save_to = DIAGNOSTICS / (outcome + '_logistic_diagnostics.eps'))
+                      print_appendix_diagnostics=True)
 
 # COMMAND ----------
 
@@ -189,13 +167,17 @@ get_model_diagnostics(rslt = grass_fit[outcome][0],
                       incidents_train = grass_fit[outcome][1], 
                       incidents_test = grass_fit[outcome][2],
                       outcome = outcome,
-                      print_appendix_diagnostics=True,
-                      save_to = DIAGNOSTICS / (outcome + '_logistic_diagnostics.eps'))
+                      print_appendix_diagnostics=True)
 
 # COMMAND ----------
 
 for outcome in ['uncontrolled_within_2_hrs', 'uncontrolled_within_100_ha']:
     print(grass_fit[outcome][0].summary())
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC #### Comparison with GFDI
 
 # COMMAND ----------
 
@@ -216,8 +198,7 @@ get_model_diagnostics(rslt = grass_fit_fdi[outcome][0],
                       incidents_test = grass_fit_fdi[outcome][2],
                       outcome = outcome,
                       print_density=True,
-                      model_name_text='GFDI: ',
-                      save_to=DENSITY / (outcome + '_gfdi_density.eps'))
+                      model_name_text='GFDI: ')
 
 # COMMAND ----------
 
@@ -227,8 +208,7 @@ get_model_diagnostics(rslt = grass_fit_fdi[outcome][0],
                       incidents_test = grass_fit_fdi[outcome][2],
                       outcome = outcome,
                       print_density=True,
-                      model_name_text='GFDI: ',
-                      save_to=DENSITY / (outcome + '_gfdi_density.eps'))
+                      model_name_text='GFDI: ')
 
 # COMMAND ----------
 
@@ -257,14 +237,18 @@ get_model_diagnostics(rslt = forest_fit['uncontrolled_within_5_ha'][0],
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC #### Paper plots and model summary
+
+# COMMAND ----------
+
 outcome = 'uncontrolled_within_4_hrs'
 get_model_diagnostics(rslt = forest_fit[outcome][0], 
                       incidents_train = forest_fit[outcome][1], 
                       incidents_test = forest_fit[outcome][2],
                       outcome = outcome,
                       print_density=True,
-                      model_name_text='Forest: ',
-                      save_to=DENSITY / (outcome + '_density.eps'))
+                      model_name_text='Forest: ')
 
 # COMMAND ----------
 
@@ -274,8 +258,7 @@ get_model_diagnostics(rslt = forest_fit[outcome][0],
                       incidents_test = forest_fit[outcome][2],
                       outcome = outcome,
                       print_density=True,
-                      model_name_text='Forest: ',
-                      save_to=DENSITY / (outcome + '_density.eps'))
+                      model_name_text='Forest: ')
 
 # COMMAND ----------
 
@@ -284,8 +267,7 @@ get_model_diagnostics(rslt = forest_fit[outcome][0],
                       incidents_train = forest_fit[outcome][1], 
                       incidents_test = forest_fit[outcome][2],
                       outcome = outcome,
-                      print_appendix_diagnostics=True,
-                      save_to = DIAGNOSTICS / (outcome + '_logistic_diagnostics.eps'))
+                      print_appendix_diagnostics=True)
 
 # COMMAND ----------
 
@@ -294,13 +276,17 @@ get_model_diagnostics(rslt = forest_fit[outcome][0],
                       incidents_train = forest_fit[outcome][1], 
                       incidents_test = forest_fit[outcome][2],
                       outcome = outcome,
-                      print_appendix_diagnostics=True,
-                      save_to = DIAGNOSTICS / (outcome + '_logistic_diagnostics.eps'))
+                      print_appendix_diagnostics=True)
 
 # COMMAND ----------
 
 for outcome in ['uncontrolled_within_4_hrs', 'uncontrolled_within_5_ha']:
     print(forest_fit[outcome][0].summary())
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC #### Comparison with FFDI
 
 # COMMAND ----------
 
@@ -321,8 +307,7 @@ get_model_diagnostics(rslt = forest_fit_fdi[outcome][0],
                       incidents_test = forest_fit_fdi[outcome][2],
                       outcome = outcome,
                       print_density=True,
-                      model_name_text='FFDI: ',
-                      save_to=DENSITY / (outcome + '_ffdi_density.eps'))
+                      model_name_text='FFDI: ')
 
 # COMMAND ----------
 
@@ -332,8 +317,7 @@ get_model_diagnostics(rslt = forest_fit_fdi[outcome][0],
                       incidents_test = forest_fit_fdi[outcome][2],
                       outcome = outcome,
                       print_density=True,
-                      model_name_text='FFDI: ',
-                      save_to=DENSITY / (outcome + '_ffdi_density.eps'))
+                      model_name_text='FFDI: ')
 
 # COMMAND ----------
 
@@ -369,213 +353,24 @@ compute_vif(forest_incidents, forest_features)
 
 # COMMAND ----------
 
-model_features
-
-# COMMAND ----------
-
 outcome = 'uncontrolled_within_2_hrs'
 features = [x for x in grass_2_hrs_features if x != 'T_SFC_ishistorical']
-plot_quantile_residuals(grass_fit[outcome][2], outcome, outcome + '_p', features, log_transform=grass_2_hrs_transform_features, model_name_text='Grass: ', save_to=RESIDUALS / (outcome + '.eps'))
+plot_quantile_residuals(grass_fit[outcome][2], outcome, outcome + '_p', features, log_transform=grass_2_hrs_transform_features, model_name_text='Grass: ')
 
 # COMMAND ----------
 
 outcome = 'uncontrolled_within_100_ha'
-plot_quantile_residuals(grass_fit[outcome][2], outcome, outcome + '_p', grass_100_ha_features, log_transform=grass_100_ha_transform_features, model_name_text='Grass: ', save_to=RESIDUALS / (outcome + '.eps'))
+plot_quantile_residuals(grass_fit[outcome][2], outcome, outcome + '_p', grass_100_ha_features, log_transform=grass_100_ha_transform_features, model_name_text='Grass: ')
 
 # COMMAND ----------
 
 outcome = 'uncontrolled_within_4_hrs'
-plot_quantile_residuals(forest_fit[outcome][2], outcome, outcome + '_p', forest_4_hrs_features, log_transform=forest_4_hrs_transform_features, model_name_text='Forest: ', save_to=RESIDUALS / (outcome + '.eps'))
+plot_quantile_residuals(forest_fit[outcome][2], outcome, outcome + '_p', forest_4_hrs_features, log_transform=forest_4_hrs_transform_features, model_name_text='Forest: ')
 
 # COMMAND ----------
 
 outcome = 'uncontrolled_within_5_ha'
-plot_quantile_residuals(forest_fit[outcome][2], outcome, outcome + '_p', forest_5_ha_features, log_transform=forest_5_ha_transform_features, model_name_text='Forest: ', save_to=RESIDUALS / (outcome + '.eps'))
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ### Influence
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC - I can't remember what the studentised residuals plots should show.
-
-# COMMAND ----------
-
-potential_outliers = {}
-for outcome in ['uncontrolled_within_2_hrs', 'uncontrolled_within_100_ha']:
-    potential_outliers['grass', outcome] = check_influence(grass_incidents, grass_fit[outcome][0], outcome)
-
-# COMMAND ----------
-
-for outcome in ['uncontrolled_within_4_hrs', 'uncontrolled_within_5_ha']:
-    potential_outliers['forest', outcome] = check_influence(forest_incidents, forest_fit[outcome][0], outcome)
-
-# COMMAND ----------
-
-incidents.loc[potential_outliers[('grass', 'uncontrolled_within_100_ha')][0], ['uncontrolled_within_100_ha'] + model_features]
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ### Linear contribution distribution
-# MAGIC - Multiply each data column by its coefficient and plot it as a histogram/kdeplot
-# MAGIC - Compare to see which variables give the largest contribution: very positive and very negative
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC #### Grass, 2 hrs
-
-# COMMAND ----------
-
-grass_fit['uncontrolled_within_2_hrs'][0].summary()
-
-# COMMAND ----------
-
-
-
-plot_feature_distributions(grass_incidents, grass_fit['uncontrolled_within_2_hrs'][0], grass_2_hrs_features, log_transform=grass_2_hrs_transform_features)
-
-# COMMAND ----------
-
-plot_feature_distributions(grass_incidents, grass_fit['uncontrolled_within_2_hrs'][0], ['T_SFC', 'RH_SFC', 'WindMagKmh_SFC'], log_transform=grass_2_hrs_transform_features)
-
-# COMMAND ----------
-
-plot_feature_distributions(grass_incidents, grass_fit['uncontrolled_within_2_hrs'][0],['KBDI',  'Curing'], log_transform=grass_2_hrs_transform_features)
-
-# COMMAND ----------
-
-plot_feature_distributions(grass_incidents, grass_fit['uncontrolled_within_2_hrs'][0], ['soil_moisture'], log_transform=grass_2_hrs_transform_features)
-
-# COMMAND ----------
-
-plot_feature_distributions(grass_incidents, grass_fit['uncontrolled_within_2_hrs'][0], ['ruggedness_average_3km', 'building_density_3km', 'road_density_km_in_3km', 'road_distance_m'], log_transform=grass_2_hrs_transform_features)
-
-# COMMAND ----------
-
-plot_feature_distributions(grass_incidents, grass_fit['uncontrolled_within_2_hrs'][0], ['forest_density_3km', 'shrub_density_3km'], log_transform=grass_2_hrs_transform_features)
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC #### Grass, 100 ha
-
-# COMMAND ----------
-
-grass_fit['uncontrolled_within_100_ha'][0].summary()
-
-# COMMAND ----------
-
-plot_feature_distributions(grass_incidents, grass_fit['uncontrolled_within_100_ha'][0], grass_100_ha_features, log_transform=grass_100_ha_transform_features)
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC #### Forest, 4 hrs
-
-# COMMAND ----------
-
-forest_fit['uncontrolled_within_4_hrs'][0].summary()
-
-# COMMAND ----------
-
-plot_feature_distributions(forest_incidents, forest_fit['uncontrolled_within_4_hrs'][0], forest_4_hrs_features, log_transform=forest_4_hrs_transform_features)
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC #### Forest, 5 ha
-
-# COMMAND ----------
-
-forest_fit['uncontrolled_within_5_ha'][0].summary()
-
-# COMMAND ----------
-
-plot_feature_distributions(forest_incidents, forest_fit['uncontrolled_within_5_ha'][0], forest_5_ha_features, log_transform=forest_5_ha_transform_features)
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ### Feature distribution as confusion matrix
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC TODO: To run this plot, need to pull out the code that does the classification from `get_model_diagnostics()` and put it back into `fit_logistic_regression()`.
-
-# COMMAND ----------
-
-def plot_feature_distribution_as_confusion_matrix(data, outcome, features, n_cols=4):
-
-    tp_df = data.query(f'{outcome}==1 & {outcome}_threshold_roc==1')
-    fp_df = data.query(f'{outcome}==0 & {outcome}_threshold_roc==1')
-    fn_df = data.query(f'{outcome}==1 & {outcome}_threshold_roc==0')
-    tn_df = data.query(f'{outcome}==0 & {outcome}_threshold_roc==0')
-
-    n_rows=int(np.ceil(len(features)/n_cols))
-    fig, axs = plt.subplots(ncols=n_cols, nrows=n_rows, figsize=(21, 14))
-    plt.subplots_adjust(wspace=0.3, hspace=0.3)
-    fig.suptitle(outcome, fontsize=14, y=0.9)
-    for row in range(n_rows):
-        if (row<n_rows-1) | (len(features)%n_cols==0):
-            col_range=n_cols
-        else:
-            col_range=len(features)%n_cols
-        for col in range(col_range):
-            if n_rows==1:
-                axis = axs[col]
-            else:
-                axis = axs[row,col]
-            feature = features[row*n_cols + col]
-            sns.kdeplot(x=feature, data=tp_df, label='tp_df', color='orange', fill=True, ax=axis)
-            sns.kdeplot(x=feature, data=fp_df, label='fp_df', linestyle='--', color='orange', fill=True, ax=axis)
-            sns.kdeplot(x=feature, data=fn_df, label='fn_df', linestyle='--', color='lightblue', fill=True, ax=axis)
-            sns.kdeplot(x=feature, data=tn_df, label='tn_df', color='lightblue', fill=True, ax=axis)
-            axis.legend()
-    plt.show()
-
-# COMMAND ----------
-
-# plot_feature_distribution_as_confusion_matrix(forest_fit['uncontrolled_within_5_ha'][2], 'uncontrolled_within_5_ha', forest_5_ha_features)
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## Correlations in model features
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC Looking at combined contributions of correlated features to see if they cancel each other out. (Leaving this here as a reminder of what I did.)
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ### Grass, 2 hrs
-
-# COMMAND ----------
-
-(pd.concat([grass_fit['uncontrolled_within_2_hrs'][0].params, grass_fit['uncontrolled_within_2_hrs'][0].pvalues], axis=1)
- .rename(columns={0: 'coef', 1: 'pvalue'})
- .sort_values('pvalue'))
-
-# COMMAND ----------
-
-smg.plot_corr(np.corrcoef(grass_incidents[grass_2_hrs_features].T), xnames=grass_2_hrs_features, normcolor=True);
-
-# COMMAND ----------
-
-plot_summed_feature_distribution(grass_incidents, grass_fit['uncontrolled_within_2_hrs'][0], ['T_SFC', 'RH_SFC'])
-
-# COMMAND ----------
-
-# TODO: if decide to continue with this analysis, need to implement log1p transforms
-# plot_summed_feature_distribution(grass_incidents, grass_fit['uncontrolled_within_2_hrs'][0], ['road_density_km_in_3km', 'building_density_3km'])
+plot_quantile_residuals(forest_fit[outcome][2], outcome, outcome + '_p', forest_5_ha_features, log_transform=forest_5_ha_transform_features, model_name_text='Forest: ')
 
 # COMMAND ----------
 
