@@ -4,7 +4,7 @@ from pathlib import Path
 RANDOM_SEED = 20240124
 
 # Main directory
-DATA_DIRECTORY = Path('/Workspace').joinpath('Users', 'elena.tartaglia@deeca.vic.gov.au', 'vic-ia', 'data')
+DATA_DIRECTORY = Path('..').joinpath('data')
 
 # Modelling dataset
 MODEL_INPUT = DATA_DIRECTORY / 'ifrd_v2.5.8.csv'
