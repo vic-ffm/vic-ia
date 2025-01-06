@@ -27,16 +27,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# import sklearn.metrics
-# # from sklearn.model_selection import cross_val_score, train_test_split
-# # from sklearn.linear_model import LogisticRegression
-# from sklearn.metrics import balanced_accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
-
-# import statsmodels.api as sm
-# import statsmodels.formula.api as smf
-# from statsmodels.gam.api import GLMGam, BSplines
-
-
 # Import setup file
 from base_include import *
 from get_model_data import *
