@@ -5,12 +5,36 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import warnings
 
+# logistic regression
 import sklearn.metrics
 from sklearn.metrics import balanced_accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 from scipy import stats
+
+# random forests
+import sklearn.model_selection as skm 
+from ISLP import confusion_table 
+from ISLP.models import ModelSpec as MS
+from sklearn.tree import (DecisionTreeClassifier as DTC, 
+                          plot_tree , 
+                          export_text) 
+from sklearn.metrics import (accuracy_score, 
+                             balanced_accuracy_score,
+                             log_loss,
+                             roc_curve,
+                             roc_auc_score,
+                             precision_recall_fscore_support,
+                             precision_recall_curve,
+                             average_precision_score) 
+from sklearn.ensemble import (RandomForestClassifier as RF, 
+                              GradientBoostingClassifier as GBR) 
+
+from imblearn.ensemble import (BalancedRandomForestClassifier as BRF)
+from hyperopt import tpe,hp,Trials
+from hyperopt.fmin import fmin
+from sklearn.metrics import mean_squared_error,make_scorer
 
 from base_include import *
 
@@ -228,7 +252,6 @@ def get_model_diagnostics(rslt, incidents_train, incidents_test, outcome, print_
 
 
 def add_is_train_column(incidents_data, significant_fire_seasons=['2008-09', '2019-20']):
-
     """
     Add column which indicates which rows are in the training data set. This is done by taking 70% of the fire seasons for the training set and the rest for the test set, but of the two significant fire seasons (2008-09, 2019-20) one is assigned to each of the train and test sets.
     A test_season can be entered if you want to ensure a specific season or seasons is in the test set.
@@ -322,64 +345,114 @@ def plot_quantile_residuals(output_df, outcome, outcome_prob, model_features, lo
         plt.savefig(RESIDUALS / (outcome + '.eps'))
 
 
-def check_influence(input_df, output_model, outcome, cooks_distance_level=None):
+def fit_tree_classifier(incidents_data, outcome, model_features, classifier, fbeta=1, params_best=None, print_diagnostics=False, print_feature_importance=False, random_state=RANDOM_SEED, save_to=None, **args):
     """
-    Calculate influence based on Cook's distance and studentised residual
+    Fit random forest or balanced random forest classifier
     """
+    model = MS(incidents_data[model_features], intercept=False)
+    D = model.fit_transform(incidents_data[model_features])
+    X_train = np.asarray(D[incidents_data.is_train_data == 1])
+    X_test = np.asarray(D[incidents_data.is_train_data == 0])
+    y_train = np.asarray(incidents_data.query('is_train_data == 1')[outcome])
+    y_test = np.asarray(incidents_data.query('is_train_data == 0')[outcome])
 
-    df = add_is_train_column(input_df).query('is_train_data==1')
-    df['cooks_distance'] = output_model.get_influence().cooks_distance[0]
-    df['resid_studentised'] = output_model.get_influence().resid_studentized
+    clf = classifier(random_state=random_state, **args).fit(X_train, y_train)
+    y_pred=clf.predict(X_test)
+    y_proba=clf.predict_proba(X_test)
 
-    if cooks_distance_level is None:
-        # take the 10 points with the highest cooks distance
-        # by setting threshold to be the value of the 11th highest value
-        cooks_distance_level = df.cooks_distance.sort_values(ascending=False).iloc[11]
-    studentised_residual_level = 3
+    # Split into train, test, validation: train/test split based on fire season, then split train (80% of original train), validation (20% of original train)
+    (X_train, X_val , y_train , y_val) = skm.train_test_split(X_train, y_train, test_size=0.2, random_state=random_state)
 
-    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
-    sns.scatterplot(x=range(df.shape[0]), y='cooks_distance', alpha=0.3, data=df, ax=axs[0])
-    axs[0].axhline(y=cooks_distance_level, color='black')
-
-    sns.scatterplot(x=range(df.shape[0]), y='resid_studentised', hue=outcome, alpha=0.3, data=df, ax=axs[1])
-    axs[1].axhline(y=studentised_residual_level, color='black')
-    axs[1].axhline(y=-studentised_residual_level, color='black')
-    sns.move_legend(axs[1], "upper left", bbox_to_anchor=(1, 1))
+    # Find best classifier (within a specified range of input parameters): best is measured using fbeta-score
+    if params_best == None:
+        trial=Trials()
+        params_best=optimize(trial, classifier, X_train, y_train, X_val, y_val, fbeta, **args)
     
-    high_cooks_distance = df.query('cooks_distance>@cooks_distance_level').sort_values('cooks_distance', ascending=False).index
-    high_studentised_residual = df.query('abs(resid_studentised)>@studentised_residual_level').sort_values('resid_studentised', ascending=False).index
+    # Fit the model with the best parameters
+    clf_best= classifier(n_estimators=int(round(params_best['n_estimators'])),
+                         max_depth=int(round(params_best['max_depth'])),
+                         min_samples_leaf=int(round(params_best['min_samples_leaf'])),
+                         min_samples_split=int(round(params_best['min_samples_split'])),
+                         random_state=random_state,
+                         **args).fit(X_train, y_train)
 
-    return(high_cooks_distance.to_list(), high_studentised_residual.to_list())
+    # Predict on test data
+    y_pred=clf_best.predict(X_test)
+    y_proba=clf_best.predict_proba(X_test)
 
-
-def plot_feature_distributions(data, fit, list_of_features, log_transform=[]):
-    """
-    Plot distribution of linear contribution of each feature to the input fit model. This is useful for comparing how much the different input features effect the model.
-    """
-    fig, ax = plt.subplots(1,1)
-    for feature in list_of_features:
-        if feature in log_transform:
-            sns.kdeplot(data=fit.params[f'np.log1p({feature})']*np.log1p(data[[feature]]), x=feature, label=feature)
-        else:    
-            sns.kdeplot(data=fit.params[feature]*data[[feature]], x=feature, label=feature)
-        ax.legend()
-        sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
+    if print_diagnostics:
+        outcome_text = outcome.replace('_', ' ')
+        print(f'Performance Metrics: {outcome_text}')
+        precision, recall, fbetascore, _ = precision_recall_fscore_support(y_true=y_test, y_pred=y_pred, beta=fbeta)
+        print(f"Precision {precision[1]:.4f}, Recall {recall[1]:.4f}, F{fbeta} score {fbetascore[1]:.4f}")
+        print("------------------")
+        print('Confusion table')
+        print(confusion_table(predicted_labels=y_pred, true_labels=y_test))
+        test_df = pd.DataFrame(data = np.transpose(np.vstack((y_test, y_proba[:, 1]))),
+                               columns=['y_test', 'y_proba'])
         
-    plt.xlabel('coefficient*data')
-    plt.show()
+        fig, axs = plt.subplots(1, 3, figsize=(20,6))
+        sns.kdeplot(data=test_df, x='y_proba' , hue='y_test', common_norm=False, cut=0, ax=axs[0])
+        axs[0].set_xlim([0, 1])
+        axs[0].set_xlabel('Probability of being uncontrolled', fontsize=18)
+        axs[0].set_ylabel('Density', fontsize=18)
+        axs[0].legend(title='Ground truth', labels=['uncontrolled', 'controlled'], fontsize=16, title_fontsize=16)
+
+        auc = roc_auc_score(test_df['y_test'], test_df['y_proba'])
+        fpr, tpr, thresholds = roc_curve(test_df['y_test'], test_df['y_proba'])
+        axs[1].plot(fpr,tpr,label=f"AUC = {auc:.4}")
+        axs[1].set_xlabel("False positive rate", fontsize=18)
+        axs[1].set_ylabel("True positive rate", fontsize=18)
+        axs[1].legend(loc=4,fontsize=18, handlelength=0, handletextpad=0)
+
+        ap = average_precision_score(test_df['y_test'], test_df['y_proba'])
+        precision, recall, thresholds = precision_recall_curve(test_df['y_test'], test_df['y_proba'])
+        axs[2].plot(recall, precision, label=f"AP = {ap:.4}")
+        axs[2].set_xlabel("Recall", fontsize=18)
+        axs[2].set_ylabel("Precision", fontsize=18)
+        axs[2].legend(loc=8,fontsize=18, handlelength=0, handletextpad=0)
+        if save_to is not None:
+            plt.savefig(save_to)
+        else:
+            plt.show()
+
+    if print_feature_importance:
+        print("------------------")
+        print('Feature importance')
+        print(pd.DataFrame({'importance':clf_best.feature_importances_}, index=model_features).sort_values(by='importance',ascending=False))
+
+    return params_best
 
 
-def plot_summed_feature_distribution(data, fit, list_of_features):
+def optimize(trial, classifier, X_train, y_train, X_val, y_val, fbeta, seed=2, **args):
     """
-    Plot distribution of linear contribution of the sum of the input list of features to the input fit model. This is useful for comparing how much much a group of features effects the model.
+    Hyperparameter tuning for random forests: tries different combinations of hyperparameters and returns the best combination
+    https://www.kaggle.com/code/virajbagal/eda-xgb-random-forest-parameter-tuning-hyperopt
     """
-    df = data.copy()
+    params={'n_estimators':hp.uniform('n_estimators',100,300),
+           'max_depth':hp.uniform('max_depth',5,20),
+           'min_samples_leaf':hp.uniform('min_samples_leaf',1,5),
+           'min_samples_split':hp.uniform('min_samples_split',2,10)}
+    best=fmin(fn= lambda p: objective(p, classifier, X_train, y_train, X_val, y_val, fbeta, **args),
+              space=params,algo=tpe.suggest,trials=trial,max_evals=500,rstate=np.random.default_rng(seed))
+    return best
 
-    for feature in list_of_features:
-        df[feature + '_sum'] = fit.params[feature]*df[feature]
-    sum_dist = df[[feature + '_sum' for feature in list_of_features]].sum(axis=1).to_frame(name='summed_distribution')
 
-    fig, ax = plt.subplots(1,1)
-    sns.kdeplot(data=sum_dist, x='summed_distribution', label=' '.join(list_of_features))
-    ax.legend()
-    sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
+def objective(params, classifier, X_train, y_train, X_val, y_val, fbeta, **args):
+    """
+    Objective function for determining how well a given set of hyperparameters performs
+    https://www.kaggle.com/code/virajbagal/eda-xgb-random-forest-parameter-tuning-hyperopt
+    """
+
+    est=int(params['n_estimators'])
+    md=int(params['max_depth'])
+    msl=int(params['min_samples_leaf'])
+    mss=int(params['min_samples_split'])
+    # model=RF(n_estimators=est,max_depth=md,min_samples_leaf=msl,min_samples_split=mss)
+    # model=BRF(n_estimators=est,max_depth=md,min_samples_leaf=msl,min_samples_split=mss, sampling_strategy="all", replacement=True, bootstrap=False)
+    model = classifier(n_estimators=est,max_depth=md,min_samples_leaf=msl,min_samples_split=mss, **args)
+    model.fit(X_train, y_train)
+    pred=model.predict(X_val)
+    precision, recall, fbetascore, _ = precision_recall_fscore_support(y_true=y_val, y_pred=pred, beta=fbeta)
+    score=fbetascore[0] # minimising 1-fbetascore for outcome
+    return score
