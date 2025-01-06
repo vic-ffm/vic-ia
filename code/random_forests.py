@@ -9,16 +9,6 @@
 
 # COMMAND ----------
 
-# MAGIC %pip install ISLP
-
-# COMMAND ----------
-
-# MAGIC %pip install -U imbalanced-learn
-
-# COMMAND ----------
-
-# Restart Python after having installed packages
-dbutils.library.restartPython()
 # Refresh input files when they change
 %load_ext autoreload
 %autoreload 2
