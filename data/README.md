@@ -1,9 +1,16 @@
 # Data
 
+TODO: Instructions on how to reference this data.
+
+TODO: Rename the data set and refer to IFRD paper/data.
+
 Contains version 2.5.8 of the Interagency Fires Research Dataset, joined with predictors, in `ifrd_v2.5.8.csv`. Each row represents a fire that occurred within the state of Victoria, Australia between 1 April 2008 and 30 March 2024.
 
 | Variable | Name | Units | Description |
 | -------- | ---- | ----- | ----------- |
+| `season` | Fire season | - | Range of years indicating the fire season, e.g. 2008-09 indicates the fire season over the Australian summer of 2008 to 2009. 
+| `date` | Date | - | Date  | Date that the fire was reported to have started. Only recorded for fires in the case studies for privacy.
+| `reported_time` | Reported time | - | Date and time the fire was reported to have started. Only recorded for fires in the case studies for privacy.
 | `T_SFC` | Temperature | &deg;C | Ambient air temperature from the most recent forecast before the fire report time from the Australian Digital Forecast Data, Bureau of Meteorology.
 | `T_SFC_historical` | Temperature (historical) | &deg;C | Ambient air temperature from the VicClim grid value closest to the reported fire time and location.
 | `RH_SFC` | Relative humidity | % |  Relative humidity as a percentage from the most recent forecast before the fire report time from the Australian Digital Forecast Data (Bureau of Meteorology).
