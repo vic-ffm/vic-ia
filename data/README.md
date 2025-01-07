@@ -9,7 +9,7 @@ Contains version 2.5.8 of the Interagency Fires Research Dataset, joined with pr
 | Variable | Name | Units | Description |
 | -------- | ---- | ----- | ----------- |
 | `season` | Fire season | - | Range of years indicating the fire season, e.g. 2008-09 indicates the fire season over the Australian summer of 2008 to 2009. 
-| `date` | Date | - | Date  | Date that the fire was reported to have started. Only recorded for fires in the case studies for privacy.
+| `date` | Date | - | Date that the fire was reported to have started. Only recorded for fires in the case studies for privacy.
 | `reported_time` | Reported time | - | Date and time the fire was reported to have started. Only recorded for fires in the case studies for privacy.
 | `T_SFC` | Temperature | &deg;C | Ambient air temperature from the most recent forecast before the fire report time from the Australian Digital Forecast Data, Bureau of Meteorology.
 | `T_SFC_historical` | Temperature (historical) | &deg;C | Ambient air temperature from the VicClim grid value closest to the reported fire time and location.
