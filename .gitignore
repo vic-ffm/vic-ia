@@ -1,2 +1,11 @@
+# File path configuration files
+/code/pconfig.py
+/code/rconfig.R
+
 # Intermediate processed data files
 /data/processed
+
+# Python folders
+/venv
+/code/__pycache__
+.ipynb_checkpoints
