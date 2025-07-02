@@ -5,7 +5,7 @@ Contains version 2.5.8 of the Victorian Wildfire Research Dataset, joined with p
 
 To reference this data:
 
-Butler K, Rennie J, Tartaglia E (2025). 'Victorian Wildfire Research Dataset v2.5.8 joined with predictors' (v1) [Dataset]. Country Fire Authority and Department of Energy, Environment and Climate Action, Melbourne, Australia. 
+Butler K, Rennie J, Tartaglia E, McCarthy N (2025). 'Victorian Wildfire Research Dataset v2.5.8 joined with predictors' (v1) [Dataset]. Country Fire Authority and Department of Energy, Environment and Climate Action, Melbourne, Australia. 
 
 | Variable | Name | Units | Description |
 | -------- | ---- | ----- | ----------- |
