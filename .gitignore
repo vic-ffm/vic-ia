@@ -7,5 +7,6 @@
 
 # Python folders
 /venv
+.venv
 /code/__pycache__
 .ipynb_checkpoints
