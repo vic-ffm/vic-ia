@@ -9,7 +9,7 @@ DATA_DIRECTORY = REPO_DIRECTORY / 'data'
 # DATA_DIRECTORY = Path('.').joinpath('data') # When called via reticulate, needs this file path.
 
 # Modelling dataset
-MODEL_INPUT = DATA_DIRECTORY / 'ifrd_v2.5.8.csv'
+MODEL_INPUT = DATA_DIRECTORY / 'vwfrd_v2.5.8.csv'
 
 # Processed model input data for use in R 
 PROCESSED_DATA = DATA_DIRECTORY / 'processed'
