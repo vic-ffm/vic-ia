@@ -1,7 +1,10 @@
 # Data
 
 Contains version 2.5.8 of the Victorian Wildfire Research Dataset, joined with predictors, in `vwfrd_v2.5.8.csv`. Each row represents a fire that occurred within the state of Victoria, Australia between 1 April 2008 and 30 March 2024.
+
+
 To reference this data:
+
 Butler K, Rennie J, Tartaglia E (2025). 'Victorian Wildfire Research Dataset v2.5.8 joined with predictors' (v1) [Dataset]. Country Fire Authority and Department of Energy, Environment and Climate Action, Melbourne, Australia. 
 
 | Variable | Name | Units | Description |
