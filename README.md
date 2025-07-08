@@ -8,3 +8,7 @@ This repo contains the code and data to reproduce the results presented in the a
 
 - code: R and Python files that produce the analysis results.
 - data: the Victorian Wildfire Research Dataset joined to predictors as a csv.
+
+## License
+
+MIT License.
