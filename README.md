@@ -1,8 +1,8 @@
-# An application-specific approach to modelling the probability of unsuccessful initial attack on wildfires in Victoria, Australia
+# Empirical models of initial attack success are not suitable for triaging ignitions in Victoria, Australia
 
 Authors: Kristy Butler, Elena Tartaglia, Jason Rennie, Stephen Deutsch, Nick McCarthy
 
-This repo contains the code and data to reproduce the results presented in the article "An application-specific approach to modelling the probability of unsuccessful initial attack on wildfires in Victoria, Australia" by the Authors. 
+This repo contains the code and data to reproduce the results presented in the article "Empirical models of initial attack success are not suitable for triaging ignitions in Victoria, Australia" by the Authors. 
 
 ## Contents
 
