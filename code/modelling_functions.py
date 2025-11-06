@@ -38,6 +38,7 @@ from sklearn.metrics import mean_squared_error,make_scorer
 
 from base_include import *
 
+
 FEATURE_NAMES = {'T_SFC': 'Temperature',
  'T_SFC_ishistorical': 'Historical indicator',
  'RH_SFC': 'Relative humidity',
@@ -96,6 +97,33 @@ def fit_logistic_regression(incidents_data, outcome, model_features, interaction
     incidents_train = incidents_train.assign(**{outcome_prob: rslt.predict(exog=incidents_train)})
 
     return rslt, incidents_train, incidents_test, 
+
+def get_model_comparison(incidents_test1, incidents_test2, outcome, model_name_text1='', model_name_text2='', save_to=None):
+    outcome_prob = outcome + "_p"
+    
+    fig, axs = plt.subplots(1,2, figsize=(9, 4))
+    fig.tight_layout(pad=2)
+    # First plot
+    sns.kdeplot(data=incidents_test1, x=outcome_prob, hue=outcome, common_norm=False, clip=(0.0, 1.0), ax=axs[0])
+    axs[0].set_xlim([0, 1])
+    axs[0].set_title('(a) ' + model_name_text1 + outcome_prob.replace('_p', '').replace('_', ' '), loc='left')
+    axs[0].set(xlabel = 'Probability of being uncontrolled')
+    axs[0].legend(title='Ground truth', labels=['uncontrolled', 'controlled'])
+    #axs['(a)'].set_title('(a)',loc='left')
+    # Second plot
+    sns.kdeplot(data=incidents_test2, x=outcome_prob, hue=outcome, common_norm=False, clip=(0.0, 1.0), ax=axs[1])
+    axs[1].set_xlim([0, 1])
+    axs[1].set_title('(b) ' + model_name_text2 + outcome_prob.replace('_p', '').replace('_', ' '), loc='left')
+    axs[1].set(xlabel = 'Probability of being uncontrolled')
+    axs[1].legend(title='Ground truth', labels=['uncontrolled', 'controlled'])
+    
+    if save_to is not None:
+        plt.savefig(save_to)
+    else:
+        plt.show()
+    return None
+    
+
 
 def get_model_diagnostics(rslt, incidents_train, incidents_test, outcome, print_diagnostics=False, print_confusion_matrix=False, print_density=False, print_appendix_diagnostics=False, normalise_confusion=False, recall_for_threshold=None, model_name_text='', save_to=None):
     outcome_prob = outcome + "_p"
@@ -172,6 +200,7 @@ def get_model_diagnostics(rslt, incidents_train, incidents_test, outcome, print_
             plt.savefig(save_to)
         else:
             plt.show()
+        
 
     # Print diagnostics for paper appendix
     if print_appendix_diagnostics:
@@ -285,7 +314,7 @@ def compute_vif(df, model_features):
     return vif.sort_values('VIF', ascending=False)
 
 
-def calculate_quantile_resiuals(y_pred, y_proba):
+def calculate_quantile_residuals(y_pred, y_proba):
     """
     Calculate quantile residuals (Dunn & Smyth 2018)
     https://stats.stackexchange.com/questions/1432/what-do-the-residuals-in-a-logistic-regression-mean
@@ -305,7 +334,7 @@ def plot_quantile_residuals(output_df, outcome, outcome_prob, model_features, lo
     Plot quantile residuals vs the outcome and each model feature, as suggested by Dunn & Smyth 2018
     """
     df = (output_df
-          .assign(**{'quantile_residual': calculate_quantile_resiuals(output_df[outcome], output_df[outcome_prob]),
+          .assign(**{'quantile_residual': calculate_quantile_residuals(output_df[outcome], output_df[outcome_prob]),
                      outcome_prob + '_const_inf_scale': np.arcsin(np.sqrt(output_df[outcome_prob]))
                     }
                   )
